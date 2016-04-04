@@ -463,6 +463,11 @@ body {
           justify-content: space-between;
 }
 
+.todo-calendar {
+  width: 100%;
+  padding: 10px 40px 20px 40px;
+}
+
 .todo-header-buttons:last-child {
   margin-right: 0;
 }
@@ -480,11 +485,6 @@ body {
   letter-spacing: 0.05em;
   -webkit-box-shadow: 0 1px 2px #bdbdbd;
           box-shadow: 0 1px 2px #bdbdbd;
-}
-
-.todo-calendar {
-  width: 100%;
-  padding: 10px 40px 20px 40px;
 }
 
 .todo-calendar-week {
@@ -594,52 +594,6 @@ body {
   border-bottom-right-radius: 3px;
 }
 
-.todo-date {
-  margin-bottom: 10px;
-}
-
-.todo-date > * {
-  display: inline-block;
-}
-
-.todo-date-date {
-  font-size: 16px;
-  margin: 0 7px;
-}
-
-.todo-date-today {
-  font-size: 11px;
-  padding: 2px 7px;
-  border-radius: 3px;
-  -webkit-box-shadow: inset 0 0 5px #999;
-          box-shadow: inset 0 0 5px #999;
-  margin-left: 15px;
-  vertical-align: top;
-  cursor: pointer;
-}
-
-.todo-date-prev,
-.todo-date-next {
-  font-size: 12px;
-  width: 16px;
-  height: 16px;
-  border-radius: 3px;
-  -webkit-box-shadow: inset 0 0 5px #999;
-          box-shadow: inset 0 0 5px #999;
-  vertical-align: top;
-  cursor: pointer;
-}
-
-.todo-date-next {
-  background: url(../images/next.svg) 6px 6px no-repeat;
-  background-size: 4px;
-}
-
-.todo-date-prev {
-  background: url(../images/prev.svg) 6px 6px no-repeat;
-  background-size: 4px;
-}
-
 .todo-day {
   border: 1px solid rgba(217, 217, 217, 0.5);
   -webkit-box-flex: 1;
@@ -665,17 +619,17 @@ body {
   margin-right: 0;
 }
 
-.todo-day:nth-child(6), .todo-day:nth-child(7) {
-  background-color: #f6f6f6;
-}
-
-.todo-day:nth-child(6):hover, .todo-day:nth-child(7):hover {
-  background-color: #f1f1f1;
-}
-
 .todo-day-num {
   display: inline;
   font-size: 10px;
+}
+
+.todo-day-weekend {
+  background-color: #f6f6f6;
+}
+
+.todo-day-weekend:hover {
+  background-color: #f1f1f1;
 }
 
 .todo-day-active {
@@ -753,6 +707,53 @@ body {
   display: none;
 }
 
+.todo-date {
+  margin-bottom: 10px;
+}
+
+.todo-date > * {
+  display: inline-block;
+}
+
+.todo-date-date {
+  font-size: 16px;
+  margin: 0 7px;
+  text-transform: capitalize;
+}
+
+.todo-date-today {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  -webkit-box-shadow: inset 0 0 5px #999;
+          box-shadow: inset 0 0 5px #999;
+  margin-left: 15px;
+  vertical-align: top;
+  cursor: pointer;
+}
+
+.todo-date-prev,
+.todo-date-next {
+  font-size: 12px;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  -webkit-box-shadow: inset 0 0 5px #999;
+          box-shadow: inset 0 0 5px #999;
+  vertical-align: top;
+  cursor: pointer;
+}
+
+.todo-date-next {
+  background: url(../images/next.svg) 6px 6px no-repeat;
+  background-size: 4px;
+}
+
+.todo-date-prev {
+  background: url(../images/prev.svg) 6px 6px no-repeat;
+  background-size: 4px;
+}
+
 .todo-filter {
   position: relative;
 }
@@ -799,8 +800,7 @@ body {
   display: block;
 }
 
-.todo-form-add-input-title, .todo-form-add-input-date,
-.todo-form-add-input-people, .todo-form-add-input-description {
+.todo-form-add-input-title, .todo-form-add-input-description {
   width: 100%;
   margin-bottom: 5px;
   padding: 5px 9px;
@@ -823,7 +823,7 @@ body {
   cursor: initial;
 }
 
-.todo-form-close {
+.todo-form-add-close {
   position: absolute;
   right: 10px;
   top: 10px;
@@ -840,6 +840,8 @@ body {
 
 .todo-form-add-input-date,
 .todo-form-add-input-people {
+  margin-bottom: 5px;
+  padding: 5px 9px;
   font-size: 12px;
 }
 
