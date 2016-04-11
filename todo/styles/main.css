@@ -419,12 +419,45 @@ body {
   font-size: 14px;
 }
 
+.todo-form-add-input-title, .todo-form-add-input-description, .todo-quick-add-form-input {
+  width: 100%;
+  margin-bottom: 5px;
+  padding: 5px 9px;
+  -webkit-box-shadow: inset 0 1px 5px #999;
+          box-shadow: inset 0 1px 5px #999;
+  border-radius: 3px;
+  border: none;
+}
+
+.todo-form-add-close, .todo-quick-add-form-close {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 5px;
+  height: 5px;
+  cursor: pointer;
+  background: url(../images/close.svg) 0 0 no-repeat;
+  background-size: cover;
+}
+
+.todo-form-add-button-submit, .todo-form-add-button-delete, .todo-quick-add-from-submit {
+  margin-right: 10px;
+  border: 1px solid #999;
+  border-radius: 4px;
+  font-size: 11px;
+  background: -webkit-gradient(linear, left top, left bottom, from(rgba(238, 238, 238, 0)), color-stop(rgba(238, 238, 238, 0)), color-stop(#eeeeee), to(#eeeeee));
+  background: -webkit-linear-gradient(top, rgba(238, 238, 238, 0), rgba(238, 238, 238, 0), #eeeeee, #eeeeee);
+  background: linear-gradient(to bottom, rgba(238, 238, 238, 0), rgba(238, 238, 238, 0), #eeeeee, #eeeeee);
+  padding: 3px 7px;
+}
+
 .todo-header {
   background-color: #f4f4f4;
   width: 100%;
   padding: 20px 40px;
   position: relative;
   margin-bottom: 5px;
+  z-index: 2;
 }
 
 .todo-header:after {
@@ -466,6 +499,11 @@ body {
 .todo-calendar {
   width: 100%;
   padding: 10px 40px 20px 40px;
+}
+
+.todo-header-buttons {
+  position: relative;
+  z-index: 2;
 }
 
 .todo-header-buttons:last-child {
@@ -603,8 +641,6 @@ body {
   min-height: 100px;
   margin-right: -1px;
   margin-bottom: -1px;
-  margin-left: auto;
-  margin-top: auto;
   padding: 5px 8px;
   z-index: 1;
   cursor: pointer;
@@ -672,6 +708,10 @@ body {
 
 .todo-day-selected:first-child {
   margin-left: -1px;
+}
+
+.todo-item {
+  overflow: hidden;
 }
 
 .todo-item-title {
@@ -800,16 +840,6 @@ body {
   display: block;
 }
 
-.todo-form-add-input-title, .todo-form-add-input-description {
-  width: 100%;
-  margin-bottom: 5px;
-  padding: 5px 9px;
-  -webkit-box-shadow: inset 0 1px 5px #999;
-          box-shadow: inset 0 1px 5px #999;
-  border-radius: 3px;
-  border: none;
-}
-
 .todo-form-add {
   position: absolute;
   background-color: #fff;
@@ -823,19 +853,18 @@ body {
   cursor: initial;
 }
 
-.todo-form-add-close {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  width: 5px;
-  height: 5px;
-  cursor: pointer;
-  background: url(../images/close.svg) 0 0 no-repeat;
-  background-size: cover;
-}
-
 .todo-form-add-input-title {
   font-size: 14px;
+}
+
+.todo-form-add-input-title:invalid {
+  border: 1px solid red;
+  margin-bottom: 4px;
+  margin-top: -1px;
+}
+
+.todo-form-add-input-title:invalid:focus {
+  outline-color: red;
 }
 
 .todo-form-add-input-date,
@@ -853,23 +882,134 @@ body {
   resize: none;
 }
 
-.todo-form-add-button-submit, .todo-form-add-button-delete {
-  margin-right: 10px;
-  border: 1px solid #999;
-  border-radius: 4px;
-  font-size: 11px;
-  background: -webkit-gradient(linear, left top, left bottom, from(rgba(238, 238, 238, 0)), color-stop(rgba(238, 238, 238, 0)), color-stop(#eeeeee), to(#eeeeee));
-  background: -webkit-linear-gradient(top, rgba(238, 238, 238, 0), rgba(238, 238, 238, 0), #eeeeee, #eeeeee);
-  background: linear-gradient(to bottom, rgba(238, 238, 238, 0), rgba(238, 238, 238, 0), #eeeeee, #eeeeee);
-  padding: 3px 7px;
-}
-
 .todo-form-add-button-submit:hover {
   background: rgba(36, 236, 27, 0.2);
 }
 
 .todo-form-add-button-delete:hover {
   background: rgba(255, 4, 5, 0.2);
+}
+
+.todo-quick-add-form {
+  position: absolute;
+}
+
+.todo-quick-add-form-container {
+  position: absolute;
+  margin-top: 15px;
+  width: 250px;
+  padding: 20px;
+  background-color: #fff;
+  -webkit-box-shadow: 0 0 10px #999;
+          box-shadow: 0 0 10px #999;
+}
+
+.todo-quick-add-form-input {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.todo-quick-add-from-submit:hover {
+  background: rgba(36, 236, 27, 0.2);
+}
+
+.todo-filter-result {
+  position: absolute;
+  background-color: #fff;
+  z-index: 2;
+  left: 22px;
+  top: 100%;
+  margin-top: 15px;
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 5px;
+  -webkit-box-shadow: 0 0 10px #999;
+          box-shadow: 0 0 10px #999;
+}
+
+.todo-result-item {
+  padding: 5px;
+  border-bottom: 1px solid #ccc;
+  cursor: pointer;
+  position: relative;
+}
+
+.todo-result-item:hover {
+  background-color: #038ef9;
+}
+
+.todo-result-item:hover * {
+  color: #fff;
+}
+
+.todo-result-item:hover .todo-result-item-title:after {
+  background-image: -webkit-gradient(linear, left top, right top, from(rgba(2, 113, 199, 0)), to(#0271c7));
+  background-image: -webkit-linear-gradient(left, rgba(2, 113, 199, 0), #0271c7);
+  background-image: linear-gradient(to right, rgba(2, 113, 199, 0), #0271c7);
+}
+
+.todo-result-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.todo-result-item-title {
+  font-size: 12px;
+  font-weight: bold;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.todo-result-item-title:after {
+  content: "";
+  display: block;
+  position: absolute;
+  background-image: -webkit-gradient(linear, left top, right top, from(rgba(255, 255, 255, 0)), to(white));
+  background-image: -webkit-linear-gradient(left, rgba(255, 255, 255, 0), white);
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0), white);
+  width: 40px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.todo-result-item-date {
+  font-size: 10px;
+  color: #999;
+}
+
+.todo-calendar-week:nth-child(4) .todo-form-add,
+.todo-calendar-week:nth-child(5) .todo-form-add,
+.todo-calendar-week:nth-child(6) .todo-form-add {
+  bottom: 100%;
+  top: auto;
+  margin-bottom: 15px;
+  left: 0;
+  margin-left: 0;
+}
+
+.todo-day:nth-child(5) .todo-form-add,
+.todo-day:nth-child(6) .todo-form-add,
+.todo-day:nth-child(7) .todo-form-add {
+  left: auto;
+  right: 100%;
+  margin-right: 15px;
+  margin-left: 0;
+}
+
+.todo-calendar-week:nth-child(4) .todo-day:nth-child(5) .todo-form-add,
+.todo-calendar-week:nth-child(4) .todo-day:nth-child(6) .todo-form-add,
+.todo-calendar-week:nth-child(4) .todo-day:nth-child(7) .todo-form-add,
+.todo-calendar-week:nth-child(5) .todo-day:nth-child(5) .todo-form-add,
+.todo-calendar-week:nth-child(5) .todo-day:nth-child(6) .todo-form-add,
+.todo-calendar-week:nth-child(5) .todo-day:nth-child(7) .todo-form-add,
+.todo-calendar-week:nth-child(6) .todo-day:nth-child(5) .todo-form-add,
+.todo-calendar-week:nth-child(6) .todo-day:nth-child(6) .todo-form-add,
+.todo-calendar-week:nth-child(6) .todo-day:nth-child(7) .todo-form-add {
+  right: 0;
+  margin-right: 0;
 }
 
 /*# sourceMappingURL=main.css.map */

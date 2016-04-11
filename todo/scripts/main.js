@@ -13576,24 +13576,6 @@ return jQuery;
 }.call(this));
 
 },{}],6:[function(require,module,exports){
-"use strict";
-
-var ActionsView = require('./ActionsView');
-var QuickAddForm = require('../QuickAddForm/QuickAddForm');
-
-
-function Actions() {
-    this.view = new ActionsView({ component: this });
-    this.quickAddForm = new QuickAddForm();
-}
-
-Actions.prototype.showQuickAddForm = function() {
-    this.view.regions.quickAdd.append(this.quickAddForm);
-};
-
-module.exports = Actions;
-
-},{"../QuickAddForm/QuickAddForm":33,"./ActionsView":8}],7:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -13601,14 +13583,15 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 
-buf.push("<button class=\"todo-header-buttons-add\">Добавить</button><div class=\"todo-header-buttons-quick-add-form\"></div><button class=\"todo-header-buttons-update\">Обновить</button>");;return buf.join("");
+buf.push("<button class=\"todo-header-buttons-add\">Добавить</button><div class=\"todo-quick-add-form\"></div><button class=\"todo-header-buttons-update\">Обновить</button>");;return buf.join("");
 };
-},{"jade/runtime":3}],8:[function(require,module,exports){
+},{"jade/runtime":3}],7:[function(require,module,exports){
 
 "use strict";
 
 var ViewBase = require('../ViewBase');
 var template = require('./ActionsView.jade');
+var QuickAddFormView = require('../QuickAddForm/QuickAddFormView');
 
 var ActionsView = ViewBase.extend({
     template: template,
@@ -13618,17 +13601,20 @@ var ActionsView = ViewBase.extend({
     },
 
     regions: {
-        quickAdd: '.todo-header-buttons-quick-add-form'
+        quickAdd: '.todo-quick-add-form'
     },
 
+    quickAddFormView: new QuickAddFormView(),
+
     onClickAdd: function () {
-        this.component.showQuickAddForm();
+        console.log('ActionsView#onClickAdd', this.quickAddFormView);
+        this.regions.quickAdd.append(this.quickAddFormView);
     }
 });
 
 module.exports = ActionsView;
 
-},{"../ViewBase":36,"./ActionsView.jade":7}],9:[function(require,module,exports){
+},{"../QuickAddForm/QuickAddFormView":35,"../ViewBase":37,"./ActionsView.jade":6}],8:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -13638,19 +13624,22 @@ var jade_interp;
 
 buf.push("<div class=\"todo-header\"><div class=\"todo-header-title\">Todo calendar</div><div class=\"todo-header-body\"></div></div><div class=\"todo-calendar\"></div>");;return buf.join("");
 };
-},{"jade/runtime":3}],10:[function(require,module,exports){
+},{"jade/runtime":3}],9:[function(require,module,exports){
 
 "use strict";
 
 var AppView = require('./ApplicationView');
-var Filter = require('../Filter/Filter');
-var Actions = require("../Actions/Actions");
-var DateSelector = require('../DateSelector/DateSelector');
-var CalendarGrid = require('../CalendarGrid/CalendarGrid');
+var FilterView = require('../Filter/FilterView');
+var ActionsView = require("../Actions/ActionsView");
+var DateSelectorView = require('../DateSelector/DateSelectorView');
+var CalendarGridView = require('../CalendarGrid/CalendarGridView');
 var MonthModel = require('./models/MonthModel');
 var TodoCollection = require('./collections/TodoCollections');
+var MonthCollection = require('../CalendarGrid/MonthCollection');
 var stubTodo = require('./stubTodo');
-var FormAdd = require('../ItemAddForm/ItemAddForm');
+var ItemAddFormView = require('../ItemAddForm/ItemAddFormView');
+var TodoModel = require('./models/TodoModel');
+var DayModel = require('../CalendarGrid/Day/DayModel');
 
 function Application() {
 
@@ -13659,23 +13648,32 @@ function Application() {
 
     //collections
     this.todoCollection = new TodoCollection();
+    this.monthCollection = new MonthCollection(this.todoCollection, this.monthModel);
 
     //views
     this.appView = new AppView();
-
-    //components
-    this.filter = new Filter();
-    this.actions = new Actions();
-    this.formAdd = new FormAdd();
-    this.dateSelector = new DateSelector(this.monthModel);
-    this.calendarGrid = new CalendarGrid(this.monthModel, this.todoCollection, this.formAdd);
+    this.filterView = new FilterView({
+        collection: this.todoCollection
+    });
+    this.actionsView = new ActionsView();
+    this.itemAddFormView = new ItemAddFormView({
+        model: new DayModel(),
+        monthModel: this.monthModel,
+        todoCollection: this.todoCollection
+    });
+    this.dateSelector = new DateSelectorView({ model: this.monthModel });
+    this.calendarGridView = new CalendarGridView({
+        model: this.monthModel,
+        collection: this.monthCollection,
+        itemAddFormView: this.itemAddFormView
+    });
 }
 
 Application.prototype.start = function() {
     this.appView.regions.calendar.append(this.dateSelector);
-    this.appView.regions.calendar.append(this.calendarGrid);
-    this.appView.regions.header.append(this.actions);
-    this.appView.regions.header.append(this.filter);
+    this.appView.regions.calendar.append(this.calendarGridView);
+    this.appView.regions.header.append(this.actionsView);
+    this.appView.regions.header.append(this.filterView);
     this.appView.show();
 
     this.todoCollection.push(stubTodo);
@@ -13683,7 +13681,7 @@ Application.prototype.start = function() {
 
 module.exports = Application;
 
-},{"../Actions/Actions":6,"../CalendarGrid/CalendarGrid":16,"../DateSelector/DateSelector":24,"../Filter/Filter":26,"../ItemAddForm/ItemAddForm":29,"./ApplicationView":11,"./collections/TodoCollections":12,"./models/MonthModel":13,"./stubTodo":15}],11:[function(require,module,exports){
+},{"../Actions/ActionsView":7,"../CalendarGrid/CalendarGridView":16,"../CalendarGrid/Day/DayModel":18,"../CalendarGrid/MonthCollection":22,"../DateSelector/DateSelectorView":24,"../Filter/FilterView":26,"../ItemAddForm/ItemAddFormView":33,"./ApplicationView":10,"./collections/TodoCollections":12,"./models/MonthModel":13,"./models/TodoModel":14,"./stubTodo":15}],10:[function(require,module,exports){
 /**
  * Created by szdv on 27.03.2016.
  */
@@ -13714,7 +13712,17 @@ var ApplicationView = ViewBase.extend({
 
 module.exports = ApplicationView;
 
-},{"../ViewBase":36,"./Application.jade":9,"jquery":4}],12:[function(require,module,exports){
+},{"../ViewBase":37,"./Application.jade":8,"jquery":4}],11:[function(require,module,exports){
+
+var _ = require('underscore');
+var Backbone = require('backbone');
+
+var EventAggregator = {};
+_.extend(EventAggregator, Backbone.Events);
+
+module.exports = EventAggregator;
+
+},{"backbone":1,"underscore":5}],12:[function(require,module,exports){
 
 "use strict";
 
@@ -13729,6 +13737,14 @@ var TodoCollections = Backbone.Collection.extend({
             var date = item.get('date');
             return date >= month.get('firstDay') && date < month.get('lastDay');
         });
+    },
+
+    getItemsForQuery: function (query) {
+        var re = new RegExp(query, 'gi');
+        return this.filter(function (item) {
+            var title = item.get('title');
+            return re.test(title);
+        });
     }
 });
 
@@ -13739,12 +13755,21 @@ module.exports = TodoCollections;
 "use strict";
 
 var Backbone = require('backbone');
+var eventAggregator = require('../EventAggregator');
+
 
 var MonthModel = Backbone.Model.extend({
     initialize: function() {
         var today = new Date();
         this.set({ today: today });
         this.setNewDate(today);
+        eventAggregator.on('jumpToItem', this.onJump, this);
+    },
+
+    onJump: function (model) {
+        var date = model.get('date');
+        this.setNewDate(date);
+        console.log('MonthModel#onJump', model);
     },
 
     incrementMonth: function () {
@@ -13787,7 +13812,7 @@ var MonthModel = Backbone.Model.extend({
 
 module.exports = MonthModel;
 
-},{"backbone":1}],14:[function(require,module,exports){
+},{"../EventAggregator":11,"backbone":1}],14:[function(require,module,exports){
 
 "use strict";
 
@@ -13796,7 +13821,7 @@ var Backbone = require('backbone');
 var TodoModel = Backbone.Model.extend({
     defaults: {
         //title: 'Title',
-        //description: 'Description',
+        description: '',
         date: new Date(),
         people: []
     }
@@ -13819,54 +13844,65 @@ module.exports = [
         title: 'Two',
         description: 'Two description',
         people: ['dkchv'],
-        date: new Date(2016, 3, 12)
+        date: new Date(2016, 4, 5)
+    },
+    {
+        id: '3',
+        title: 'Three',
+        description: 'Three description',
+        people: ['semen'],
+        date: new Date(2016, 2, 20)
+    },
+    {
+        id: '4',
+        title: 'Four',
+        description: 'Four description',
+        people: ['igor'],
+        date: new Date(2016, 1, 9)
+    },
+    {
+        id: '5',
+        title: 'Five',
+        description: 'Five description',
+        people: ['dkchv'],
+        date: new Date(2016, 4, 22)
     }
 ];
 
 },{}],16:[function(require,module,exports){
-"use strict";
-
-var CalendarGridView = require('./CalendarGridView');
-var MonthCollection = require('./MonthCollection');
-
-function CalendarGrid(monthModel, todoCollection, formAdd) {
-    this.monthModel = monthModel;
-    this.todoCollection = todoCollection;
-    this.monthCollection = new MonthCollection(todoCollection, monthModel);
-
-    this.view = new CalendarGridView({
-        model: monthModel,
-        collection: this.monthCollection,
-        formAdd: formAdd
-    });
-}
-
-module.exports = CalendarGrid;
-
-},{"./CalendarGridView":17,"./MonthCollection":22}],17:[function(require,module,exports){
 
 "use strict";
 
 var ViewBase = require('../ViewBase');
 var $ = require('jquery');
 var DayView = require('./Day/DayView');
-var Backbone = require('backbone');
+var DayModel = require('./Day/DayModel');
+var eventAggregator = require('../Application/EventAggregator');
 
 var CalendarGridView = ViewBase.extend({
     className: 'todo-calendar-content',
 
     WEEK_CLASS: 'todo-calendar-week',
 
+    today: new Date(),
     days: [],
     emptyDays: [],
 
-    formAdd: null,
+    itemAddFormView: null,
 
     initialize: function (options) {
-        this.formAdd = options.formAdd;
+        this.itemAddFormView = options.itemAddFormView;
         ViewBase.prototype.initialize.call(this, options);
         this.listenTo(this.collection, 'add', this.onAdd);
-        this.listenTo(this.collection, 'reset', this.onReset);
+        this.listenTo(this.collection, 'reset', this.onChangeDate);
+        eventAggregator.on('jumpToItem', this.onJump, this);
+    },
+
+    onJump: function (model) {
+        var date = model.get('date');
+        var day = date.getDate();
+        var dayView =  this.days[day - 1];
+        dayView.$el.trigger('click');
     },
 
     render: function () {
@@ -13878,25 +13914,28 @@ var CalendarGridView = ViewBase.extend({
     },
 
     buildGrid: function () {
+        console.log('CalendarGridView#render');
         var daysCount = this.model.get('daysCount');
-        var firstDayNumber = this.model.get('firstDayNumber') - 1;
+        var firstDayNumber = (this.model.get('firstDayNumber') + 6) % 7;
 
-        var weekDay, dayView, i, ii;
+        var weekDay, dayView, i, ii, $week;
 
         //fill in with emptys before month
-        var $week = $('<div />').addClass(this.WEEK_CLASS);
+        $week = $('<div />').addClass(this.WEEK_CLASS);
         this.$el.append($week);
-        for(i = 0, ii = firstDayNumber; i < ii; i++) {
+        //if (firstDayNumber > -1) {
+            for(i = 0, ii = firstDayNumber; i < ii; i++) {
 
-            dayView = new DayView({
-                model: new Backbone.Model({})
-            });
+                dayView = new DayView({
+                    model: new DayModel()
+                });
 
-            $week.append(dayView.render().$el);
-            this.emptyDays.push(dayView);
-        }
+                $week.append(dayView.render().$el);
+                this.emptyDays.push(dayView);
+            }
+        //}
 
-        //fill in curent month
+        //fill in current month
         for(i = 0, ii = daysCount; i < ii; i++) {
             weekDay = (i + firstDayNumber) % 7;
 
@@ -13906,12 +13945,11 @@ var CalendarGridView = ViewBase.extend({
             }
 
             dayView = new DayView({
-                model: new Backbone.Model({
+                model: new DayModel({
                     num: i+1,
-                    //item: this.collection.getItemForDay(i+1),
                     weekend: weekDay > 4
                 }),
-                formAdd: this.formAdd
+                itemAddFormView: this.itemAddFormView
             });
 
             $week.append(dayView.render().$el);
@@ -13922,37 +13960,65 @@ var CalendarGridView = ViewBase.extend({
         for(i = weekDay, ii = 6; i < ii; i++) {
 
             dayView = new DayView({
-                model: new Backbone.Model({})
+                model: new DayModel({})
             });
 
             $week.append(dayView.render().$el);
             this.emptyDays.push(dayView);
         }
 
-        ////fill in with models
-        //for(i = 0, ii = this.collection.length; i < ii; i++) {
-        //    var model = this.collection.at(i);
-        //    console.log('CalendarGridView#buildGrid', model);
-        //}
+        //setToday
+        this.hightlightToday();
     },
 
-    onReset: function (a) {
-        console.log('CalendarGridView#onReset', a);
+    hightlightToday: function () {
+        var today = this.model.get('today');
+        if (today > this.model.get('firstDay') && today < this.model.get('lastDay')) {
+            var dayView = this.days[ today.getDate() ];
+            dayView.setToday();
+        }
     },
 
-    onAdd: function (model) {
+    onChangeDate: function (collection) {
+        this.clear();
+        this.rendered = false;
+        this.$el.empty();
+        this.render();
+
+        //parse collection
+        for(var i = 0, ii = collection.length; i < ii; i++) {
+            this.addActiveDay(collection.at(i));
+        }
+    },
+
+    addActiveDay: function(model) {
         var date = model.get('date');
         var day = date.getDate();
         var view = this.days[day - 1];
-        view.model.set({ item: model});
+        view.model.set({ item: model });
+    },
 
-        console.log('CalendarGridView#onAdd', model);
+    clear: function () {
+        var i, ii;
+        for(i = 0, ii = this.days; i < ii; i++) {
+            this.days[i].remove();
+        }
+        this.days = [];
+        for(i = 0, ii = this.days; i < ii; i++) {
+            this.emptyDays[i].remove();
+        }
+        this.emptyDays = [];
+        this.itemAddFormView.hide();
+    },
+
+    onAdd: function (model) {
+        this.addActiveDay(model);
     }
 });
 
 module.exports = CalendarGridView;
 
-},{"../ViewBase":36,"./Day/DayView":19,"backbone":1,"jquery":4}],18:[function(require,module,exports){
+},{"../Application/EventAggregator":11,"../ViewBase":37,"./Day/DayModel":18,"./Day/DayView":19,"jquery":4}],17:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -13962,11 +14028,23 @@ var jade_interp;
 ;var locals_for_with = (locals || {});(function (num) {
 buf.push("<div class=\"todo-day-num\">" + (jade.escape(null == (jade_interp = num) ? "" : jade_interp)) + "</div><div class=\"todo-item\"></div>");}.call(this,"num" in locals_for_with?locals_for_with.num:typeof num!=="undefined"?num:undefined));;return buf.join("");
 };
-},{"jade/runtime":3}],19:[function(require,module,exports){
+},{"jade/runtime":3}],18:[function(require,module,exports){
 
 "use strict";
 
-//var Backbone = require('backbone');
+var Backbone = require('backbone');
+var TodoModel = require('../../Application/models/TodoModel');
+
+var DayModel = Backbone.Model.extend({
+
+});
+
+module.exports = DayModel;
+
+},{"../../Application/models/TodoModel":14,"backbone":1}],19:[function(require,module,exports){
+
+"use strict";
+
 var template = require('./Day.jade');
 var ViewBase = require('../../ViewBase');
 var ItemView = require('../Item/ItemView');
@@ -13976,22 +14054,20 @@ var DayView = ViewBase.extend({
 
     ACTIVE_CLASS: 'todo-day-active',
     SELECTED_CLASS: 'todo-day-selected',
+    TODAY_CLASS: 'todo-day-today',
 
     $item: null,
     itemView: null,
-
-    $formAdd: null,
-    formAdd: null,
+    itemAddFormView: null,
 
     events: {
         'click': 'onClick'
     },
 
     initialize: function(options) {
-        ViewBase.prototype.initialize.call(this, options);
-        this.formAdd = options.formAdd;
+        ViewBase.prototype.initialize.call(this);
+        this.itemAddFormView = options.itemAddFormView;
         this.listenTo(this.model, 'change:item', this.onChangeItem);
-        this.render();
         this.$item = this.$('.todo-item');
     },
 
@@ -14006,9 +14082,9 @@ var DayView = ViewBase.extend({
             classes.push(this.ACTIVE_CLASS);
         }
 
-        if (this.model.get('today')) {
-            classes.push('todo-day-today');
-        }
+        //if (this.model.get('today')) {
+        //    classes.push(this.TODAY_CLASS);
+        //}
 
         if (!this.model.get('num')) {
             classes.push('todo-day-empty');
@@ -14018,27 +14094,25 @@ var DayView = ViewBase.extend({
     },
 
     onChangeItem: function () {
-
         var item = this.model.get('item');
+
         if (item) {
-            var itemView = new ItemView({
-                model: this.model.get('item')
+            this.itemView = new ItemView({
+                model: item
             });
-            this.$item.append(itemView.render().$el);
+            this.$item.append(this.itemView.render().$el);
         } else {
-            //this.itemView.destroy();
+            this.itemView.$el.remove();
             this.itemView = null;
-            this.$item = null;
         }
         this.$el.toggleClass(this.ACTIVE_CLASS);
-        console.log('DayView#onChangeItem', this.$item);
     },
 
     onClick: function () {
-        var item = this.model.get('item');
-        this.formAdd.update({
+        if (!this.itemAddFormView) { return; }
+        this.itemAddFormView.update({
             dayView: this,
-            item: item
+            model: this.model
         });
     },
 
@@ -14047,12 +14121,16 @@ var DayView = ViewBase.extend({
     },
     select: function () {
         this.$el.addClass(this.SELECTED_CLASS);
+    },
+
+    setToday: function () {
+        this.$el.addClass(this.TODAY_CLASS);
     }
 });
 
 module.exports = DayView;
 
-},{"../../ViewBase":36,"../Item/ItemView":21,"./Day.jade":18}],20:[function(require,module,exports){
+},{"../../ViewBase":37,"../Item/ItemView":21,"./Day.jade":17}],20:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -14094,12 +14172,21 @@ var template = require('./ItemView.jade');
 
 var ItemView = ViewBase.extend({
     template: template,
-    className: 'todo-item'
+    className: 'todo-item',
+
+    initialize: function(options) {
+        this.listenTo(this.model, 'change', this.onChange);
+        ViewBase.prototype.initialize.call(this, options);
+    },
+
+    onChange: function () {
+        this.render(true);
+    }
 });
 
 module.exports = ItemView;
 
-},{"../../ViewBase":36,"./ItemView.jade":20}],22:[function(require,module,exports){
+},{"../../ViewBase":37,"./ItemView.jade":20}],22:[function(require,module,exports){
 
 "use strict";
 
@@ -14111,7 +14198,6 @@ var MonthCollection = Backbone.Collection.extend({
 
     constructor: function (todoCollection, monthModel) {
         this.todoCollection = todoCollection;
-        //this.listenTo(todoCollection, 'change', this.onChange);
         this.listenTo(todoCollection, 'add', this.onAdd);
 
         this.monthModel = monthModel;
@@ -14128,7 +14214,12 @@ var MonthCollection = Backbone.Collection.extend({
     },
 
     onAdd: function (model) {
-        this.push(model);
+        var date = model.get('date');
+        if (date > this.monthModel.get('firstDay') && date < this.monthModel.get('lastDay')) {
+            console.log('MonthCollection#onAdd');
+            this.add(model);
+        }
+
     }
 });
 
@@ -14145,21 +14236,6 @@ var jade_interp;
 buf.push("<div class=\"todo-date-prev\"></div><div class=\"todo-date-date\">" + (jade.escape(null == (jade_interp = curFullDateLocale) ? "" : jade_interp)) + "</div><div class=\"todo-date-next\"></div><div class=\"todo-date-today\">сегодня</div>");}.call(this,"curFullDateLocale" in locals_for_with?locals_for_with.curFullDateLocale:typeof curFullDateLocale!=="undefined"?curFullDateLocale:undefined));;return buf.join("");
 };
 },{"jade/runtime":3}],24:[function(require,module,exports){
-"use strict";
-
-var DateSelectorView = require('./DateSelectorView');
-
-function DateSelector(monthModel) {
-    this.monthModel = monthModel;
-
-    this.view = new DateSelectorView({
-        model: monthModel
-    });
-}
-
-module.exports = DateSelector;
-
-},{"./DateSelectorView":25}],25:[function(require,module,exports){
 
 "use strict";
 
@@ -14174,6 +14250,7 @@ var DateSelectorView = ViewBase.extend({
 
     initialize: function (options) {
         ViewBase.prototype.initialize.call(this, options);
+        //this.monthModel = options.monthModel;
         this.render();
         this.$date = this.$('.todo-date-date');
         this.listenTo(this.model, 'change:curFullDateLocale', this.onChangeDate);
@@ -14204,18 +14281,7 @@ var DateSelectorView = ViewBase.extend({
 
 module.exports = DateSelectorView;
 
-},{"../ViewBase":36,"./DateSelector.jade":23}],26:[function(require,module,exports){
-"use strict";
-
-var FilterView = require('./FilterView');
-
-function Filter() {
-    this.view = new FilterView();
-}
-
-module.exports = Filter;
-
-},{"./FilterView":28}],27:[function(require,module,exports){
+},{"../ViewBase":37,"./DateSelector.jade":23}],25:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -14223,92 +14289,251 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 
-buf.push("<input placeholder=\"Событие, дата, участник\" pattern=\".*\\S.*\" required=\"required\" class=\"todo-filter-input\"/><div class=\"todo-filter-clear\"></div>");;return buf.join("");
+buf.push("<input placeholder=\"Событие\" pattern=\".*\\S.*\" required=\"required\" class=\"todo-filter-input\"/><div class=\"todo-filter-clear\"></div>");;return buf.join("");
 };
-},{"jade/runtime":3}],28:[function(require,module,exports){
+},{"jade/runtime":3}],26:[function(require,module,exports){
 "use strict";
 
 var ViewBase = require('../ViewBase');
 var template = require('./FilterView.jade');
+var ResultView = require('./Result/ResultView');
+var TodoModel = require('../Application/models/TodoModel');
+//var Backbone = require('backbone');
+var ResultCollection = require('./Result/ResultCollection');
+var eventAggregator = require('../Application/EventAggregator');
 
 var FilterView = ViewBase.extend({
     className: 'todo-filter',
-    template: template
+    template: template,
+
+    $input: null,
+    resultView: null,
+    resultCollection: new ResultCollection(),
+    prevString: null,
+
+    events: {
+        'keyup .todo-filter-input': 'onChangeInput',
+        //'blur .todo-filter-input': 'clear',
+        'click .todo-filter-clear': 'clear'
+    },
+
+    initialize: function() {
+        ViewBase.prototype.initialize.call(this);
+        this.$input = this.$('.todo-filter-input');
+        this.resultView = new ResultView({
+            collection: this.resultCollection
+        });
+        eventAggregator.on('jumpToItem', this.onJump, this);
+    },
+
+    onJump: function () {
+        this.clear();
+    },
+
+    onChangeInput: function () {
+        var query = this.$input.val();
+        if (query === this.prevString) { return; }
+        this.prevString = query;
+
+        if (!query.length) {
+            this.resultView.hide();
+        } else {
+            var result = this.collection.getItemsForQuery(query)
+            if (result.length) {
+                this.resultCollection.reset(result);
+                this.$el.append(this.resultView.$el);
+            } else {
+                this.resultView.hide();
+            }
+
+        }
+    },
+
+    clear: function () {
+        console.log('FilterView#clear');
+        this.$input.val('');
+        this.prevString = '';
+        this.resultView.hide();
+    }
 });
 
 module.exports = FilterView;
 
-},{"../ViewBase":36,"./FilterView.jade":27}],29:[function(require,module,exports){
+},{"../Application/EventAggregator":11,"../Application/models/TodoModel":14,"../ViewBase":37,"./FilterView.jade":25,"./Result/ResultCollection":27,"./Result/ResultView":31}],27:[function(require,module,exports){
 "use strict";
 
-var ItemAddFormView = require('./ItemAddFormView');
-var TodoModel = require('../Application/models/TodoModel');
+var Backbone = require('backbone');
+var TodoModel = require('../../Application/models/TodoModel');
 
-function ItemAddForm() {
-    this.view = new ItemAddFormView({
-        component: this
-    });
-    this.dayView = null;
-}
+var ResultCollection = Backbone.Collection.extend({
+    model: TodoModel
+});
 
-ItemAddForm.prototype.update = function(options) {
-    if (this.dayView === options.dayView) {
-        //hide
-        this.item = null;
-        this.dayView.deselect();
-        this.view.remove();
-        this.dayView = null;
-    } else {
+module.exports = ResultCollection;
 
-        if (this.dayView) {
-            //hide previous
-            this.dayView.deselect();
-        }
-        //show
-        this.dayView = options.dayView;
-        this.dayView.select();
-        this.view.model = options.item || new TodoModel();
-        this.view.rendered = false;
-        this.dayView.$el.append(this.view.render().$el);
-    }
-};
-
-module.exports = ItemAddForm;
-
-},{"../Application/models/TodoModel":14,"./ItemAddFormView":31}],30:[function(require,module,exports){
+},{"../../Application/models/TodoModel":14,"backbone":1}],28:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
 var buf = [];
 var jade_mixins = {};
 var jade_interp;
-;var locals_for_with = (locals || {});(function (date, description, people, title) {
-buf.push("<div class=\"todo-form-add-close\"></div><input placeholder=\"Событие\"" + (jade.attr("value", title, true, false)) + " class=\"todo-form-add-input-title\"/><div class=\"todo-form-add-input-date\">" + (jade.escape(null == (jade_interp = date.getDate() + ' ' + date.toLocaleString('ru-ru', {month: 'long'})) ? "" : jade_interp)) + "</div><input placeholder=\"Имена участников\"" + (jade.attr("value", people.join(', '), true, false)) + " class=\"todo-form-add-input-people\"/><textarea placeholder=\"Описание\" class=\"todo-form-add-input-description\">" + (jade.escape(null == (jade_interp = description) ? "" : jade_interp)) + "</textarea><button class=\"todo-form-add-button-submit\">Готово</button><button class=\"todo-form-add-button-delete\">Удалить</button>");}.call(this,"date" in locals_for_with?locals_for_with.date:typeof date!=="undefined"?date:undefined,"description" in locals_for_with?locals_for_with.description:typeof description!=="undefined"?description:undefined,"people" in locals_for_with?locals_for_with.people:typeof people!=="undefined"?people:undefined,"title" in locals_for_with?locals_for_with.title:typeof title!=="undefined"?title:undefined));;return buf.join("");
+;var locals_for_with = (locals || {});(function (getDate, title) {
+buf.push("<div class=\"todo-result-item-title\">" + (jade.escape(null == (jade_interp = title) ? "" : jade_interp)) + "</div><div class=\"todo-result-item-date\">" + (jade.escape(null == (jade_interp = getDate()) ? "" : jade_interp)) + "</div>");}.call(this,"getDate" in locals_for_with?locals_for_with.getDate:typeof getDate!=="undefined"?getDate:undefined,"title" in locals_for_with?locals_for_with.title:typeof title!=="undefined"?title:undefined));;return buf.join("");
+};
+},{"jade/runtime":3}],29:[function(require,module,exports){
+
+"use strict";
+
+var ViewBase = require('../../ViewBase');
+var template = require('./ResultItemView.jade');
+var eventAggregator = require('../../Application/EventAggregator');
+
+var ResultItemView = ViewBase.extend({
+    template: template,
+    className: 'todo-result-item',
+
+    events: {
+        'click': 'onClick'
+    },
+
+    templateHelpers: {
+        getDate: function () {
+            var currentDate = this.model.get('date');
+            var month = currentDate.getMonth();
+            var day = currentDate.getDate();
+
+            //alter month
+            var monthStr = currentDate.toLocaleString('ru-ru', {month: 'long'});
+            if (month === 2 || month === 7) {
+                //март, август
+                monthStr += 'а';
+            } else {
+                monthStr = monthStr.slice(0, -1) + 'я';
+            }
+
+            return day + ' ' + monthStr;
+        }
+    },
+
+    onClick: function () {
+        console.log('ResultItemView#onClick');
+        eventAggregator.trigger('jumpToItem', this.model);
+    }
+});
+
+module.exports = ResultItemView;
+
+},{"../../Application/EventAggregator":11,"../../ViewBase":37,"./ResultItemView.jade":28}],30:[function(require,module,exports){
+var jade = require("jade/runtime");
+
+module.exports = function template(locals) {
+var buf = [];
+var jade_mixins = {};
+var jade_interp;
+
+;return buf.join("");
 };
 },{"jade/runtime":3}],31:[function(require,module,exports){
 
 "use strict";
 
+var ViewBase = require('../../ViewBase');
+var template = require('./ResultView.jade');
+var ResultItemView = require('./ResultItemView');
+var eventAggregator = require('../../Application/EventAggregator');
+
+var ResultView = ViewBase.extend({
+    template: template,
+    className: 'todo-filter-result',
+
+    itemViews: [],
+
+    initialize: function() {
+        ViewBase.prototype.initialize.call(this);
+        this.listenTo(this.collection, 'reset', this.onReset);
+        eventAggregator.on('jumpToItem', this.onJump, this);
+    },
+
+    onJump: function () {
+        this.hide();
+    },
+
+    render: function () {
+        if (!this.rendered) {
+            this.buildList();
+        }
+        this.rendered = true;
+        return this;
+    },
+
+    buildList: function () {
+        this.$el.empty();
+
+        for(var i = 0, ii = this.collection.length; i < ii; i++) {
+            var todoModel = this.collection.at(i);
+            var itemView = new ResultItemView({
+                model: todoModel
+            });
+            this.itemViews.push(itemView);
+            this.$el.append(itemView.$el);
+        }
+
+    },
+
+    onReset: function () {
+        this.rendered = false;
+        this.render();
+    },
+
+    hide: function () {
+        this.collection.reset();
+        ViewBase.prototype.hide.call(this);
+    }
+});
+
+module.exports = ResultView;
+
+},{"../../Application/EventAggregator":11,"../../ViewBase":37,"./ResultItemView":29,"./ResultView.jade":30}],32:[function(require,module,exports){
+var jade = require("jade/runtime");
+
+module.exports = function template(locals) {
+var buf = [];
+var jade_mixins = {};
+var jade_interp;
+;var locals_for_with = (locals || {});(function (currentDate, getDescription, getTitle, peoples) {
+buf.push("<div class=\"todo-form-add-close\"></div><input placeholder=\"Событие\"" + (jade.attr("value", getTitle(), true, false)) + " required=\"required\" class=\"todo-form-add-input-title\"/><div class=\"todo-form-add-input-date\">" + (jade.escape(null == (jade_interp = currentDate()) ? "" : jade_interp)) + "</div><input placeholder=\"Имена участников\"" + (jade.attr("value", peoples(), true, false)) + " class=\"todo-form-add-input-people\"/><textarea placeholder=\"Описание\" class=\"todo-form-add-input-description\">" + (jade.escape(null == (jade_interp = getDescription()) ? "" : jade_interp)) + "</textarea><button class=\"todo-form-add-button-submit\">Готово</button><button class=\"todo-form-add-button-delete\">Удалить</button>");}.call(this,"currentDate" in locals_for_with?locals_for_with.currentDate:typeof currentDate!=="undefined"?currentDate:undefined,"getDescription" in locals_for_with?locals_for_with.getDescription:typeof getDescription!=="undefined"?getDescription:undefined,"getTitle" in locals_for_with?locals_for_with.getTitle:typeof getTitle!=="undefined"?getTitle:undefined,"peoples" in locals_for_with?locals_for_with.peoples:typeof peoples!=="undefined"?peoples:undefined));;return buf.join("");
+};
+},{"jade/runtime":3}],33:[function(require,module,exports){
+
+"use strict";
+
 var ViewBase = require('../ViewBase');
 var template = require('./ItemAddFormView.jade');
-var $ = require('jquery');
+var TodoModel = require('../Application/models/TodoModel');
+var DayModel = require('../CalendarGrid/Day/DayModel');
 
 var ItemAddFormView = ViewBase.extend({
     template: template,
     className: 'todo-form-add',
 
     dayView: null,
+    monthModel: null,
+    todoCollection: null,
 
     events: {
         'click': 'onClick',
-        'click .todo-form-add-close': 'onClose'
+        'click .todo-form-add-close': 'onClose',
+        'click .todo-form-add-button-submit': 'onSubmit',
+        'click .todo-form-add-button-delete': 'onDelete'
     },
 
     initialize: function(options) {
         options = options || {};
-        var item = options.item;
         this.dayView = options.dayView;
-        console.log('ItemAddFormView#initialize', item);
+        this.monthModel = options.monthModel;
+        this.todoCollection = options.todoCollection;
+        ViewBase.prototype.initialize.call(this, options);
     },
 
     onClick: function () {
@@ -14316,13 +14541,127 @@ var ItemAddFormView = ViewBase.extend({
     },
 
     onClose: function () {
-        this.component.update({ dayView: this.dayView });
+        this.hide();
+    },
+
+    onSubmit: function () {
+        var title = this.$('.todo-form-add-input-title').val();
+        if (!title) {
+            return;
+        }
+
+        var people = this.$('.todo-form-add-input-people').val();
+        people = people.length ? people.split(',').map(Function.prototype.call, String.prototype.trim) : [];
+
+        var item = this.model.get('item') || new TodoModel({
+                date: this.getCurrentDate()
+            });
+
+        item.set({
+            title: title,
+            date: item.get('date'),
+            people: people,
+            description: this.$('.todo-form-add-input-description').val()
+        });
+
+        this.todoCollection.add(item);
+        this.hide();
+    },
+
+    onDelete: function () {
+        var item = this.model.get('item');
+        if (item) {
+            this.todoCollection.remove(item);
+        }
+        this.model.set({ item: null});
+        this.hide();
+    },
+
+    hide: function () {
+        if (this.dayView) {
+            //hide previous
+            this.dayView.deselect();
+        }
+        this.dayView = null;
+        ViewBase.prototype.hide.call(this);
+    },
+
+    update: function(options) {
+        options = options || {};
+
+        if (this.dayView) {
+            //hide previous
+            this.dayView.deselect();
+        }
+
+        if (this.dayView === options.dayView) {
+            //hide on second click
+            this.hide();
+        } else {
+            //show
+            this.dayView = options.dayView;
+            this.dayView.select();
+            this.model = options.model;
+            this.rendered = false;
+            this.dayView.$el.append(this.render().$el);
+        }
+    },
+
+    //TODO: refactor DayModel with full date
+    getCurrentDate: function () {
+        var currentDate;
+        var year, month, day;
+        var item = this.model.get('item');
+        if (!item) {
+            year = this.monthModel.get('curYear');
+            month = this.monthModel.get('curMonth');
+            day  = this.model.get('num') || 0;
+            currentDate = new Date(year, month, day);
+        } else {
+            currentDate = item.get('date');
+        }
+
+        return currentDate;
+    },
+
+    templateHelpers: {
+        currentDate: function () {
+            var currentDate = this.getCurrentDate();
+            var month = currentDate.getMonth();
+            var day = currentDate.getDate();
+            var year = currentDate.getFullYear();
+
+            //alter month
+            var monthStr = currentDate.toLocaleString('ru-ru', {month: 'long'});
+            if (month === 2 || month === 7) {
+                //март, август
+                monthStr += 'а';
+            } else {
+                monthStr = monthStr.slice(0, -1) + 'я';
+            }
+
+            return day + ' ' + monthStr + ' ' + year + ' г.';
+        },
+        peoples: function () {
+            var item = this.model.get('item');
+            if (!item) { return ''; }
+            var people = item.get('people');
+            return people ? people.join(', ') : '';
+        },
+        getTitle: function () {
+            var item = this.model.get('item');
+            return item ? item.get('title') : '';
+        },
+        getDescription: function () {
+            var item = this.model.get('item');
+            return item ? item.get('description') : '';
+        }
     }
 });
 
 module.exports = ItemAddFormView;
 
-},{"../ViewBase":36,"./ItemAddFormView.jade":30,"jquery":4}],32:[function(require,module,exports){
+},{"../Application/models/TodoModel":14,"../CalendarGrid/Day/DayModel":18,"../ViewBase":37,"./ItemAddFormView.jade":32}],34:[function(require,module,exports){
 var jade = require("jade/runtime");
 
 module.exports = function template(locals) {
@@ -14330,22 +14669,9 @@ var buf = [];
 var jade_mixins = {};
 var jade_interp;
 
-buf.push("<div>quick add</div><div class=\"todo-quick-add-close\">close</div>");;return buf.join("");
+buf.push("<div class=\"todo-quick-add-form-container\"><div class=\"todo-quick-add-form-close\"></div><input placeholder=\"Событие, участники\" class=\"todo-quick-add-form-input\"/><button class=\"todo-quick-add-from-submit\">Создать</button></div>");;return buf.join("");
 };
-},{"jade/runtime":3}],33:[function(require,module,exports){
-"use strict";
-
-var QuickAddFormView = require('./QuickAddFormView');
-
-function QuickAddForm() {
-    this.view = new QuickAddFormView(this);
-}
-
-
-
-module.exports = QuickAddForm;
-
-},{"./QuickAddFormView":34}],34:[function(require,module,exports){
+},{"jade/runtime":3}],35:[function(require,module,exports){
 
 "use strict";
 
@@ -14356,7 +14682,7 @@ var QuickAddFormView = ViewBase.extend({
     template: template,
 
     events: {
-        'click .todo-quick-add-close': 'onCloseClick'
+        'click .todo-quick-add-form-close': 'onCloseClick'
     },
 
     onCloseClick: function () {
@@ -14366,7 +14692,7 @@ var QuickAddFormView = ViewBase.extend({
 
 module.exports = QuickAddFormView;
 
-},{"../ViewBase":36,"./QuickAddForm.jade":32}],35:[function(require,module,exports){
+},{"../ViewBase":37,"./QuickAddForm.jade":34}],36:[function(require,module,exports){
 "use strict";
 
 var $ = require('jquery');
@@ -14376,49 +14702,60 @@ function Region($el) {
     this.$df = $(document.createDocumentFragment());
 }
 
-Region.prototype.show = function(component) {
-    this.append(component);
+Region.prototype.show = function(view) {
+    this.append(view);
 };
 
 Region.prototype.hide = function() {
     this.$df.append(this.$el.children());
 };
 
-Region.prototype.append = function(component) {
-
-    component.view.parentRegion = this;
-    this.$el.append(component.view.render().$el);
+Region.prototype.append = function(view) {
+    view.parentRegion = this;
+    this.$el.append(view.render().$el);
 };
 
 module.exports = Region;
 
-},{"jquery":4}],36:[function(require,module,exports){
+},{"jquery":4}],37:[function(require,module,exports){
 "use strict";
 
 var Backbone = require('backbone');
 var Region = require('./Region');
+var $ = require('jquery');
 
 var ViewBase = Backbone.View.extend({
 
-    component: null,
+    $df: $(document.createDocumentFragment()),
 
-    initialize: function(options) {
-        options = options || {};
-        this.component = options.component;
+
+    initialize: function() {
+        //options = options || {};
+        //this.component = options.component;
         this.render();
         this.initRegions();
     },
 
     rendered: false,
 
-    render: function () {
-        if (this.rendered) { return this; }
+    render: function (force) {
+        if (this.rendered && !force) { return this; }
         this.rendered = true;
 
         var data = {};
         if (this.model) {
             data = this.model.toJSON();
         }
+
+        if (this.templateHelpers) {
+            //bind helpers to data
+            for(var helper in this.templateHelpers) {
+                if(this.templateHelpers.hasOwnProperty(helper)) {
+                    data[helper] = this.templateHelpers[helper].bind(this);
+                }
+            }
+        }
+
         this.$el.html(this.template(data));
         return this;
     },
@@ -14428,6 +14765,8 @@ var ViewBase = Backbone.View.extend({
     hide: function () {
         if (this.parentRegion) {
             this.parentRegion.hide();
+        } else {
+            this.$df.append(this.$el);
         }
     },
 
@@ -14437,7 +14776,8 @@ var ViewBase = Backbone.View.extend({
         for (var regionName in this.regions) {
             if (this.regions.hasOwnProperty(regionName)) {
                 var className = this.regions[regionName];
-                var $el = this.$(className);
+                var $el = className === 'el' ? this.$el : this.$(className);
+
                 this.regions[regionName] = new Region($el);
             }
         }
@@ -14446,7 +14786,7 @@ var ViewBase = Backbone.View.extend({
 
 module.exports = ViewBase;
 
-},{"./Region":35,"backbone":1}],37:[function(require,module,exports){
+},{"./Region":36,"backbone":1,"jquery":4}],38:[function(require,module,exports){
 
 'use strict';
 
@@ -14455,7 +14795,7 @@ var app = new Application();
 //app.init();
 app.start();
 
-},{"../_modules/Application/Application":10}]},{},[37])
+},{"../_modules/Application/Application":9}]},{},[38])
 
 
 //# sourceMappingURL=main.js.map
